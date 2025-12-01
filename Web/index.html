@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>openedutrack — Mantenimiento y Asistencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#f5f7fb;--card:#ffffff;--muted:#6b7280;--accent:#0f62fe;--danger:#ef4444}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);margin:0;color:#111;min-height:100vh}
+    header{background:linear-gradient(90deg,#0f62fe22 0%, #0f62fe11 100%);padding:18px 24px;display:flex;align-items:center;gap:16px;position:relative}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo img{width:48px;height:48px;object-fit:cover;border-radius:8px;box-shadow:0 2px 6px rgba(12,20,40,.06)}
+    .brand h1{margin:0;font-size:18px}
+    .brand p{margin:0;font-size:12px;color:var(--muted)}
+    main{max-width:1100px;margin:24px auto;padding:0 16px}
+    .grid{display:grid;grid-template-columns:1fr;gap:18px}
+    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
+    h2{margin:0 0 12px 0;font-size:16px}
+    form .row{display:flex;gap:8px;margin-bottom:8px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input,select,button,textarea{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #e6e8ee;background:#fff;font-size:14px}
+    button{cursor:pointer;border:none;background:var(--accent);color:#fff;padding:10px 12px;border-radius:8px}
+    .muted{color:var(--muted);font-size:13px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px 6px;text-align:left;border-bottom:1px solid #f0f2f6;font-size:14px}
+    th{font-weight:600;color:#334155}
+    .small{font-size:13px}
+    .actions button{margin-right:6px;padding:6px 8px;font-size:13px}
+    .accent-ghost{background:transparent;color:var(--accent);border:1px solid rgba(15,98,254,.12)}
+    .danger{background:var(--danger)}
+    .search{display:flex;gap:8px;margin-bottom:12px}
+    .center{display:flex;align-items:center;gap:8px}
+    /* Login overlay */
+    .overlay{position:fixed;inset:0;background:rgba(8,12,20,.45);display:flex;align-items:center;justify-content:center;padding:20px}
+    .login-card{width:100%;max-width:420px;background:var(--card);padding:22px;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,.4);text-align:center}
+    .login-card img{width:84px;height:84px;margin-bottom:12px;border-radius:12px}
+    .logout-btn{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;display:flex;align-items:center;gap:8px;flex-direction:row-reverse}
+    .logout-btn .username{font-size:13px;color:var(--muted);margin-left:6px}
+    .logout-btn svg{width:22px;height:22px;color:var(--muted)}
+    .register-card{width:100%;max-width:920px;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 12px 30px rgba(2,6,23,.25);}
+    .register-card{position:relative}
+    .form-grid{display:grid;grid-template-columns:1fr 220px 160px;gap:12px;align-items:end}
+    .form-grid .full{grid-column:1 / -1}
+    .form-group label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px}
+    .form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+    .close-icon{position:absolute;right:12px;top:12px;background:transparent;border:0;cursor:pointer;font-size:18px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}.brand h1{font-size:16px}}
+    /* Toaster notifications */
+    #toastContainer{position:fixed;right:16px;bottom:16px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .toast{background:var(--card);padding:12px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,.18);min-width:220px;color:#0b1220;border-left:4px solid var(--accent);display:flex;flex-direction:column;gap:6px}
+    .toast .t-title{font-weight:600}
+    .toast .t-body{font-size:13px;color:var(--muted)}
+    .toast .t-close{align-self:flex-end;background:transparent;border:0;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:6px}
+    /* Tab buttons */
+    .tab-buttons{display:flex;gap:8px;align-items:center}
+    .tab-button{padding:8px 12px;border-radius:8px;border:1px solid rgba(15,98,254,.12);background:transparent;color:var(--accent);cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;width:auto}
+    .tab-button.active{background:var(--accent);color:#fff;border-color:transparent}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="logo.jpeg" alt="logo openedutrack" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'64\'><rect width=\'100%\' height=\'100%\' fill=\'%230f62fe\'/><text x=\'50%\' y=\'54%\' font-size=\'22\' font-family=\'Inter,Arial\' fill=\'white\' text-anchor=\'middle\'>OT</text></svg>'"/>
+      <div class="brand">
+        <h1>openedutrack</h1>
+        <p class="muted">Mantenimiento de alumnos y registro de asistencia</p>
+      </div>
+    </div>
+    <button id="btnLogout" class="logout-btn" title="Cerrar sesión" style="display:none" onclick="logout()">
+      <span id="headerUserName" class="username"></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </header>
+
+  <!-- Login overlay -->
+  <div id="loginOverlay" class="overlay" style="display:none">
+    <div class="login-card">
+      <img src="logo.jpeg" alt="openedutrack logo" onerror="this.style.display='none'"/>
+      <h3 style="margin:6px 0 4px">Bienvenido a openedutrack</h3>
+      <p class="muted">Inicia sesión con tus credenciales</p>
+      <form id="loginForm" onsubmit="login(event)" style="margin-top:12px;text-align:left">
+        <label class="muted">Usuario</label>
+        <input id="loginUser" placeholder="usuario" required />
+        <label class="muted" style="margin-top:8px">Contraseña</label>
+        <input id="loginPass" type="password" placeholder="contraseña" required />
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button type="submit">Iniciar sesión</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <main id="appMain" style="display:none">
+    <div class="grid">
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 id="mainTitle">Alumnos</h2>
+          <div class="tab-buttons">
+            <button id="tabBtnAlumnos" class="tab-button" onclick="showTab('alumnos')">Alumnos</button>
+            <button id="tabBtnRealtime" class="tab-button" onclick="showTab('realtime')">Asistencia en tiempo real</button>
+          </div>
+        </div>
+
+        <div id="tabAlumnos" style="margin-top:10px">
+          <div class="search">
+            <input id="studentSearch" placeholder="Buscar alumno por nombre o clase" oninput="fetchStudents(this.value,1)" />
+            <button class="accent-ghost" onclick="openRegisterDialog()">+ Nuevo alumno</button>
+          </div>
+          <div id="studentsList" class="small"></div>
+          <div id="paginationFooter" class="muted small center" style="margin-top:8px"></div>
+        </div>
+
+        <div id="tabRealtime" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <label class="muted" style="margin:0">Fecha</label>
+            <input type="date" id="realtimeDateInput" />
+            <button class="accent-ghost" onclick="fetchAttendanceByDate(document.getElementById('realtimeDateInput').value,1)">Cargar</button>
+          </div>
+          <div id="realtimeList" class="small" style="max-height:420px;overflow:auto"></div>
+          <div id="realtimePaginationFooter" class="muted small center" style="margin-top:8px"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Registro convertido a diálogo; se abre con + Nuevo alumno -->
+    <div id="registerDialog" class="overlay" style="display:none">
+      <div class="register-card">
+        <button class="close-icon" title="Cerrar" onclick="closeRegisterDialog()">✕</button>
+        <h2 id="registerDialogTitle" style="margin-top:6px">Registro de alumno</h2>
+        <p class="muted" style="margin:6px 0 12px">Complete los datos del alumno para registrar en el sistema.</p>
+
+        <form id="registerForm" onsubmit="registerStudent(event)">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="nombre_completo">Nombre completo</label>
+              <input id="nombre_completo" required />
+            </div>
+
+            <div class="form-group">
+              <label for="grado_id">Grado</label>
+              <select id="grado_id" required><option value="">Cargando...</option></select>
+            </div>
+
+            <div class="form-group">
+              <label for="biometrico_id">Biométrico ID</label>
+              <input id="biometrico_id" type="number" min="1" max="1000" required />
+            </div>
+
+            <div class="form-group full">
+              <label for="nombre_apoderado">Nombre apoderado</label>
+              <input id="nombre_apoderado" required />
+            </div>
+
+            <div class="form-group">
+              <label for="numero_apoderado">Número apoderado</label>
+              <input id="numero_apoderado" required />
+            </div>
+
+            <div class="form-actions full">
+              <button type="submit">Guardar</button>
+              <button type="button" class="accent-ghost" onclick="closeRegisterDialog()">Cancelar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+    <!-- Dialog de asistencias por alumno -->
+    <div id="attendanceDialog" class="overlay" style="display:none">
+      <div class="register-card" style="max-width:720px;">
+        <button class="close-icon" title="Cerrar" onclick="closeAttendanceDialog()">✕</button>
+        <h2 id="attendanceDialogTitle" style="margin-top:6px">Asistencias</h2>
+        <p id="attendanceDialogSub" class="muted" style="margin:6px 0 12px">Lista de asistencias del alumno</p>
+
+        <div id="attendanceList" class="small" style="max-height:380px;overflow:auto"></div>
+        <div id="attendancePaginationFooter" class="muted small center" style="margin-top:8px"></div>
+        <div style="margin-top:12px;text-align:right"><button class="accent-ghost" onclick="closeAttendanceDialog()">Cerrar</button></div>
+      </div>
+    </div>
+
+  <!-- SignalR client -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js" crossorigin="anonymous"></script>
+  <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+  <script>
+    const STORAGE_SESSION = 'openedutrack_session';
+    const STORAGE_DATA = 'openedutrack_data';
+    const STORAGE_TAB = 'openedutrack_tab';
+    const SERVER_URL = 'https://edutrack.gaspersoft.com/';
+
+    // Datos
+    let students = [];
+    let attendanceRecords = [];
+    // Paginación
+    let currentPage = 1;
+    let pageSize = 20;
+    let totalPages = 1;
+    // Edición
+    let editingStudentId = null;
+
+    function uid(){return Math.random().toString(36).slice(2,9)}
+
+    function saveData(){
+      localStorage.setItem(STORAGE_DATA, JSON.stringify({students,attendanceRecords}));
+    }
+
+    function loadData(){
+      const raw = localStorage.getItem(STORAGE_DATA);
+      if(raw){
+        try{const obj=JSON.parse(raw);students = obj.students||[]; attendanceRecords = obj.attendanceRecords||[];}catch(e){console.warn('Datos corruptos',e);}
+      }
+    }
+
+    // Sesión
+    function setSession(user, token){
+      localStorage.setItem(STORAGE_SESSION, JSON.stringify({user,token,ts:Date.now()}));
+    }
+
+    function clearSession(){
+      localStorage.removeItem(STORAGE_SESSION);
+    }
+
+    function getSession(){
+      try{return JSON.parse(localStorage.getItem(STORAGE_SESSION));}catch(e){return null}
+    }
+
+    function getAuthHeaders(){
+      const sess = getSession();
+      if(sess && sess.token) return {'Authorization': 'Bearer ' + sess.token};
+      return {};
+    }
+
+    // SignalR and notifications
+    let hubConnection = null;
+    // Tabs
+    let currentTab = 'alumnos';
+    // Realtime attendance state
+    let realtimePage = 1;
+    const realtimePageSize = 20;
+    let realtimeTotalPages = 1;
+
+    function showNotification(title, body, ttl=5000){
+      try{
+        const container = document.getElementById('toastContainer');
+        if(!container) return;
+        const div = document.createElement('div'); div.className = 'toast';
+        const close = document.createElement('button'); close.className = 't-close'; close.innerText = '✕';
+        close.onclick = ()=>{ if(container.contains(div)) container.removeChild(div); };
+        const t = document.createElement('div'); t.className = 't-title'; t.textContent = title || '';
+        const b = document.createElement('div'); b.className = 't-body'; b.textContent = body || '';
+        div.appendChild(close); div.appendChild(t); div.appendChild(b);
+        container.appendChild(div);
+        setTimeout(()=>{ if(container.contains(div)) container.removeChild(div); }, ttl);
+      }catch(e){ console.warn('showNotification error', e); }
+    }
+
+    async function setupSignalR(){
+      try{
+        const sess = getSession();
+        if(!sess || !sess.token){ console.log('SignalR: no session/token available'); return; }
+        if(typeof signalR === 'undefined'){ console.warn('SignalR client not loaded'); return; }
+        // stop existing connection if any
+        if(hubConnection){ try{ await hubConnection.stop(); }catch(e){} hubConnection = null; }
+
+        // Prefer direct WebSocket without negotiate to avoid /negotiate 404 on server
+        try{
+          const base = new URL(SERVER_URL);
+          // build wss:// URL
+          base.protocol = (base.protocol === 'https:' ? 'wss:' : (base.protocol === 'http:' ? 'ws:' : base.protocol));
+          base.pathname = base.pathname.replace(/\/$/, '') + '/api/hubs/notificar';
+          base.search = '?access_token=' + encodeURIComponent(sess.token);
+          const wsUrl = base.toString();
+          console.log('SignalR attempting WebSocket (skipNegotiation) to', wsUrl);
+          hubConnection = new signalR.HubConnectionBuilder()
+            .withUrl(wsUrl, { skipNegotiation: true, transport: signalR.HttpTransportType.WebSockets })
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+        }catch(inner){
+          console.warn('SignalR build with skipNegotiation failed, will try regular URL', inner);
+          const url = SERVER_URL.replace(/\/$/, '') + '/api/hubs/notificar?access_token=' + encodeURIComponent(sess.token);
+          hubConnection = new signalR.HubConnectionBuilder().withUrl(url).configureLogging(signalR.LogLevel.Information).build();
+        }
+
+        hubConnection.onclose(err=>{ console.log('SignalR disconnected', err); });
+        hubConnection.on('NuevaAsistencia', (alumno) => {
+          console.log('Nueva asistencia recibida:', alumno);
+          const title = 'Nueva asistencia';
+          const body = `${alumno.nombre_completo} — ID ${alumno.biometrico_id}`;
+          showNotification(title, body, 7000);
+          try{ fetchStudents('', currentPage); }catch(e){ console.warn('Error refreshing students after nueva asistencia', e); }
+          // if realtime tab is active and date matches today, refresh
+          try{
+            if(currentTab === 'realtime'){
+              const selDate = document.getElementById('realtimeDateInput')?.value;
+              const eventDate = (new Date()).toISOString().slice(0,10);
+              // If realtime date equals today (or if selDate matches), refresh current page
+              if(!selDate || selDate === eventDate){ fetchAttendanceByDate(selDate || eventDate, realtimePage); }
+            }
+          }catch(e){ console.warn('Error refreshing realtime attendance after nueva asistencia', e); }
+        });
+
+        await hubConnection.start();
+        console.log('SignalR connected');
+      }catch(err){ console.warn('SignalR connection error', err); }
+    }
+
+    async function stopSignalR(){
+      try{
+        if(hubConnection){ await hubConnection.stop(); console.log('SignalR stopped'); }
+      }catch(e){ console.warn('Error stopping SignalR', e); }
+      hubConnection = null;
+    }
+
+    function showTab(tab){
+      currentTab = tab;
+      const btnA = document.getElementById('tabBtnAlumnos');
+      const btnR = document.getElementById('tabBtnRealtime');
+      const tA = document.getElementById('tabAlumnos');
+      const tR = document.getElementById('tabRealtime');
+      if(btnA) btnA.classList.toggle('active', tab==='alumnos');
+      if(btnR) btnR.classList.toggle('active', tab==='realtime');
+      if(tA) tA.style.display = (tab==='alumnos')? 'block' : 'none';
+      if(tR) tR.style.display = (tab==='realtime')? 'block' : 'none';
+      document.getElementById('mainTitle').textContent = (tab==='alumnos')? 'Alumnos' : 'Asistencia en tiempo real';
+      // persist selection
+      try{ localStorage.setItem(STORAGE_TAB, tab); }catch(e){}
+      if(tab==='alumnos'){
+        fetchStudents(document.getElementById('studentSearch')?.value||'', currentPage);
+      } else {
+        // set default date to today if empty
+        const inp = document.getElementById('realtimeDateInput');
+        const today = (new Date()).toISOString().slice(0,10);
+        if(inp && !inp.value) inp.value = today;
+        fetchAttendanceByDate(inp ? inp.value : today, 1);
+      }
+    }
+
+    function showApp(){
+      document.getElementById('loginOverlay').style.display='none';
+      document.getElementById('appMain').style.display='block';
+      const btn = document.getElementById('btnLogout');
+      const headerUser = document.getElementById('headerUserName');
+      const sess = getSession();
+      if(headerUser && sess && sess.user) headerUser.textContent = sess.user;
+      if(btn) btn.style.display = 'inline-flex';
+      // iniciar conexión SignalR si hay sesión
+      try{ setupSignalR(); }catch(e){ console.warn('setupSignalR error', e); }
+      // ensure the current tab is shown and styled (default 'alumnos')
+      try{ showTab(currentTab || 'alumnos'); }catch(e){ console.warn('showTab error', e); }
+    }
+
+    function showLogin(){
+      document.getElementById('loginOverlay').style.display='flex';
+      document.getElementById('appMain').style.display='none';
+      const btn = document.getElementById('btnLogout');
+      const headerUser = document.getElementById('headerUserName');
+      if(headerUser) headerUser.textContent = '';
+      if(btn) btn.style.display = 'none';
+    }
+
+    function openRegisterDialog(){
+      // Nuevo registro: limpiar estado y cargar grados
+      editingStudentId = null;
+      document.getElementById('registerDialogTitle').textContent = 'Registro de alumno';
+      document.getElementById('nombre_completo').value = '';
+      document.getElementById('grado_id').value = '';
+      document.getElementById('biometrico_id').value = '';
+      document.getElementById('nombre_apoderado').value = '';
+      document.getElementById('numero_apoderado').value = '';
+      loadGrados().catch(()=>{});
+      document.getElementById('registerDialog').style.display='flex';
+    }
+
+    async function openEditDialog(id){
+      const s = students.find(x=>x.id===id);
+      if(!s){ alert('Alumno no encontrado'); return; }
+      editingStudentId = id;
+      document.getElementById('registerDialogTitle').textContent = 'Editar alumno';
+      // cargar grados antes de setear el valor
+      await loadGrados().catch(()=>{});
+      document.getElementById('nombre_completo').value = s.name || '';
+      if(s.grado_id) document.getElementById('grado_id').value = s.grado_id;
+      if(typeof s.biometrico_id !== 'undefined') document.getElementById('biometrico_id').value = s.biometrico_id;
+      document.getElementById('nombre_apoderado').value = s.guardianName || '';
+      document.getElementById('numero_apoderado').value = s.guardianPhone || '';
+      document.getElementById('registerDialog').style.display='flex';
+    }
+
+    function closeRegisterDialog(){
+      document.getElementById('registerDialog').style.display='none';
+    }
+
+    async function login(e){
+      if(e) e.preventDefault();
+      const u = document.getElementById('loginUser').value.trim();
+      const p = document.getElementById('loginPass').value;
+      try{
+        const res = await fetch(SERVER_URL + 'api/login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({nombre_usuario: u, contrasena: p})
+        });
+        if(!res.ok){
+          const err = await res.json().catch(()=>null);
+          throw new Error(err && err.message ? err.message : 'Usuario o contraseña incorrectos');
+        }
+        const data = await res.json();
+        if(!data.access_token){
+          throw new Error('Respuesta inválida del servidor');
+        }
+        setSession(u, data.access_token);
+        loadData();
+        fetchStudents('');
+        showApp();
+      }catch(err){
+        alert(err.message||'Error al iniciar sesión');
+      }
+    }
+
+    // Cargar lista de grados para el combobox
+    async function loadGrados(){
+      const sel = document.getElementById('grado_id');
+      if(!sel) return;
+      sel.innerHTML = '<option value="">Cargando...</option>';
+      try{
+        const url = new URL(SERVER_URL + 'api/tablas/grado');
+        const res = await fetch(url.toString(), { headers: {...getAuthHeaders()} });
+        if(!res.ok) { sel.innerHTML = '<option value="">Error al cargar</option>'; return; }
+        const data = await res.json();
+        sel.innerHTML = '<option value="">-- Seleccionar grado --</option>';
+        (data||[]).forEach(g=>{
+          const opt = document.createElement('option'); opt.value = g.id; opt.textContent = g.nombre; sel.appendChild(opt);
+        });
+      }catch(err){
+        console.warn('loadGrados error', err);
+        sel.innerHTML = '<option value="">Error al cargar</option>';
+      }
+    }
+
+    function logout(){
+      if(!confirm('Cerrar sesión?')) return;
+      // detener SignalR antes de cerrar sesión
+      try{ stopSignalR(); }catch(e){ console.warn('stopSignalR error', e); }
+      clearSession();
+      showLogin();
+    }
+
+    // Alumnos
+    async function registerStudent(e){
+      if(e) e.preventDefault();
+      const nombre_completo = document.getElementById('nombre_completo').value.trim();
+      const grado_id = document.getElementById('grado_id').value;
+      const biometrico_id = parseInt(document.getElementById('biometrico_id').value,10);
+      const nombre_apoderado = document.getElementById('nombre_apoderado').value.trim();
+      const numero_apoderado = document.getElementById('numero_apoderado').value.trim();
+      if(!nombre_completo || !grado_id || !nombre_apoderado || !numero_apoderado || !biometrico_id){ alert('Todos los campos son requeridos'); return; }
+      if(!Number.isInteger(biometrico_id) || biometrico_id < 1 || biometrico_id > 1000){ alert('Biométrico ID debe ser entero entre 1 y 1000'); return; }
+      const payload = { nombre_completo, grado_id, biometrico_id, nombre_apoderado, numero_apoderado };
+      try{
+        let res;
+        if(editingStudentId){
+          // Edit existing alumno
+          res = await fetch(SERVER_URL + 'api/admin/alumnos/' + encodeURIComponent(editingStudentId), {
+            method: 'PUT', headers: {...getAuthHeaders(),'Content-Type':'application/json'}, body: JSON.stringify(payload)
+          });
+        } else {
+          // New alumno
+          res = await fetch(SERVER_URL + 'api/admin/alumnos', {
+            method: 'POST', headers: {...getAuthHeaders(),'Content-Type':'application/json'}, body: JSON.stringify(payload)
+          });
+        }
+        if(!res.ok){
+          const err = await res.json().catch(()=>null);
+          throw new Error(err && err.message ? err.message : 'Error al guardar alumno');
+        }
+        // success -> refresh list and close dialog
+        editingStudentId = null;
+        document.getElementById('registerDialogTitle').textContent = 'Registro de alumno';
+        closeRegisterDialog();
+        fetchStudents('', 1);
+      }catch(err){
+        alert(err.message||'Error al registrar alumno');
+      }
+    }
+
+    function renderStudents(){
+      const q=document.getElementById('studentSearch')?.value.toLowerCase()||'';
+      const container=document.getElementById('studentsList');
+      const tbody=document.querySelector('#attendanceTable tbody');
+      container.innerHTML=''; if(tbody) tbody.innerHTML='';
+      students.filter(s=>{
+        if(!q) return true;
+        return s.name.toLowerCase().includes(q)|| (s.clas||'').toLowerCase().includes(q);
+      }).forEach(s=>{
+        const div=document.createElement('div');
+        div.className='card small';
+        div.style.marginBottom='8px';
+        div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1"><strong style="display:block">${s.name}</strong><div class="muted">${s.clas||'Sin grado'} • ${s.guardianName? s.guardianName+' · '+s.guardianPhone : 'Sin apoderado'}</div><div style="margin-top:6px"><strong>ID: ${s.biometrico_id || '-'}</strong></div></div><div class="actions" style="margin-left:12px"><button onclick="openAttendanceDialog('${s.id}')" class="accent-ghost">Ver asistencia</button><button onclick="openEditDialog('${s.id}')" class="accent-ghost">Editar</button><button onclick="deleteStudent('${s.id}')" class="accent-ghost">Eliminar</button></div></div>`;
+        container.appendChild(div);
+
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${s.name}</td><td>${s.clas||''}</td><td>${s.guardianName||''}</td><td>${s.guardianPhone||''}</td><td><button class="accent-ghost" onclick="openAttendanceDialog('${s.id}')">Ver asistencia</button> <button class="accent-ghost" onclick="openEditDialog('${s.id}')">Editar</button> <button class="accent-ghost" onclick="deleteStudent('${s.id}')">Eliminar</button></td>`;
+        if(tbody) tbody.appendChild(tr);
+      })
+    }
+
+    // Attendance registered
+    function showAttendanceTab(tab){
+      document.getElementById('tabLive').style.display = (tab==='live')? 'block' : 'none';
+      document.getElementById('tabRegistered').style.display = (tab==='registered')? 'block' : 'none';
+      if(tab==='registered') renderRegistered();
+    }
+
+    async function fetchStudents(filtro, page){
+      const q = (typeof filtro !== 'undefined') ? filtro : (document.getElementById('studentSearch')?.value || '');
+      const pageNum = (typeof page === 'number' && page > 0) ? page : 1;
+      currentPage = pageNum;
+      try{
+        const url = new URL(SERVER_URL + 'api/admin/alumnos');
+        url.searchParams.set('filtro', q);
+        url.searchParams.set('pagina', String(currentPage));
+        url.searchParams.set('tamanoPagina', String(pageSize));
+        const res = await fetch(url.toString(), { headers: {...getAuthHeaders()} });
+        if(!res.ok){
+          console.warn('Error fetching students', res.status);
+          renderStudents(); renderPagination();
+          return;
+        }
+        const body = await res.json();
+        const list = (body && body.data) ? body.data : [];
+
+        // intentar inferir totalPages desde la respuesta
+        let tp = 1;
+        if(body){
+          const totalCandidates = [body.total, body.totalItems, body.totalCount, (body.meta && body.meta.total)];
+          const foundTotal = totalCandidates.find(v=> typeof v === 'number');
+          if(typeof foundTotal === 'number' && pageSize > 0){
+            tp = Math.max(1, Math.ceil(foundTotal / pageSize));
+          } else if(typeof body.totalPages === 'number'){
+            tp = body.totalPages;
+          } else if(typeof body.pageCount === 'number'){
+            tp = body.pageCount;
+          }
+        }
+        totalPages = tp;
+
+        students = list.map(it => ({
+          id: it.id,
+          name: it.nombre_completo,
+          clas: it.nombre_grado,
+          grado_id: it.grado_id || it.gradoId || null,
+          biometrico_id: (typeof it.biometrico_id !== 'undefined') ? it.biometrico_id : (typeof it.biometricoId !== 'undefined' ? it.biometricoId : null),
+          guardianName: it.nombre_apoderado,
+          guardianPhone: it.numero_apoderado,
+          present: false
+        }));
+        renderStudents(); renderPagination();
+      }catch(err){
+        console.warn('fetchStudents error', err);
+        renderStudents(); renderPagination();
+      }
+    }
+
+    function renderPagination(){
+      const el = document.getElementById('paginationFooter');
+      if(!el) return;
+      el.innerHTML = '';
+      if(!totalPages || totalPages <= 1){ el.textContent = ''; return; }
+      const prev = document.createElement('button'); prev.className='accent-ghost'; prev.textContent='‹ Prev'; prev.disabled = currentPage <= 1; prev.onclick = ()=>{ if(currentPage>1) fetchStudents(document.getElementById('studentSearch')?.value||'', currentPage-1); };
+      const next = document.createElement('button'); next.className='accent-ghost'; next.textContent='Next ›'; next.disabled = currentPage >= totalPages; next.onclick = ()=>{ if(currentPage<totalPages) fetchStudents(document.getElementById('studentSearch')?.value||'', currentPage+1); };
+      const info = document.createElement('span'); info.style.margin='0 8px'; info.textContent = `Página ${currentPage} de ${totalPages}`;
+      el.appendChild(prev); el.appendChild(info); el.appendChild(next);
+    }
+
+    function renderRegistered(){
+      const tbody = document.querySelector('#registeredTable tbody');
+      tbody.innerHTML = '';
+      attendanceRecords.slice().reverse().forEach(r => {
+        const student = students.find(s=>s.id===r.studentId) || {name:'(desconocido)',clas:''};
+        const tr = document.createElement('tr');
+        const date = new Date(r.date).toLocaleString();
+        tr.innerHTML = `<td>${date}</td><td>${student.name}</td><td>${student.clas||''}</td><td style="text-align:center">${r.notified? '📩' : '<button class="accent-ghost" onclick="notifyWhatsApp(\'${r.id}\')">Notificar</button>'}</td><td><button class="accent-ghost" onclick="removeRecord(\'${r.id}\')">Eliminar</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function notifyWhatsApp(recordId){
+      attendanceRecords = attendanceRecords.map(r=> r.id===recordId? {...r,notified:true} : r);
+      saveData(); renderRegistered();
+      alert('Notificación simulada por WhatsApp marcada.');
+    }
+
+    function removeRecord(recordId){
+      if(!confirm('Eliminar registro de asistencia?')) return;
+      attendanceRecords = attendanceRecords.filter(r=>r.id!==recordId);
+      saveData(); renderRegistered();
+    }
+
+    function togglePresent(id){
+      const now = new Date();
+      students = students.map(s=> s.id===id? {...s,present:!s.present} : s);
+      const student = students.find(s=>s.id===id);
+      const isPresent = student.present;
+      if(isPresent){
+        attendanceRecords.push({id:uid(),studentId:id,date:now.toISOString(),notified:false});
+      } else {
+        const day = now.toISOString().slice(0,10);
+        attendanceRecords = attendanceRecords.filter(r=> !(r.studentId===id && r.date.slice(0,10)===day));
+      }
+      renderStudents(); saveData();
+    }
+
+    async function deleteStudent(id){
+      if(!confirm('Eliminar alumno?')) return;
+      try{
+        const res = await fetch(SERVER_URL + 'api/admin/alumnos/' + encodeURIComponent(id), {
+          method: 'DELETE', headers: {...getAuthHeaders()}
+        });
+        if(!res.ok){
+          const err = await res.json().catch(()=>null);
+          throw new Error(err && err.message ? err.message : 'Error al eliminar');
+        }
+        students = students.filter(s=>s.id!==id);
+        renderStudents();
+      }catch(err){
+        alert(err.message||'Error al eliminar alumno');
+      }
+    }
+
+    // Init
+    (function init(){
+      const session = getSession();
+      loadData();
+      // restore last selected tab if present
+      try{ const saved = localStorage.getItem(STORAGE_TAB); if(saved) currentTab = saved; }catch(e){}
+      if(session && session.user){
+        fetchStudents('', currentPage);
+        showApp();
+      } else {
+        showLogin();
+      }
+    })();
+
+    // Asistencias por alumno
+    let attendanceAlumnoId = null;
+    let attendancePage = 1;
+    const attendancePageSize = 20;
+    let attendanceTotalPages = 1;
+
+    function formatDateTimeISO(iso){
+      try{
+        const d = new Date(iso);
+        if(isNaN(d)) return iso;
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        let hh = d.getHours();
+        const min = String(d.getMinutes()).padStart(2,'0');
+        const sec = String(d.getSeconds()).padStart(2,'0');
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        hh = hh % 12; if(hh===0) hh = 12;
+        const hhStr = String(hh).padStart(2,'0');
+        return `${dd}/${mm}/${yyyy} ${hhStr}:${min}:${sec} ${ampm}`;
+      }catch(e){return iso}
+    }
+
+    async function fetchAttendance(alumnoId, page){
+      attendanceAlumnoId = alumnoId;
+      attendancePage = (typeof page==='number' && page>0) ? page : 1;
+      const elList = document.getElementById('attendanceList');
+      const footer = document.getElementById('attendancePaginationFooter');
+      if(elList) elList.innerHTML = 'Cargando...';
+      try{
+        const url = new URL(SERVER_URL + 'api/asistencia/by-alumno');
+        url.searchParams.set('alumnoId', alumnoId);
+        url.searchParams.set('tamanoPagina', String(attendancePageSize));
+        url.searchParams.set('pagina', String(attendancePage));
+        const res = await fetch(url.toString(), { headers: {...getAuthHeaders()} });
+        if(!res.ok){ elList.innerHTML = 'Error al cargar asistencias'; return; }
+        const body = await res.json();
+        const list = (body && body.data) ? body.data : [];
+        attendanceTotalPages = (typeof body.totalPages === 'number' && body.totalPages>0) ? body.totalPages : (typeof body.total === 'number' && body.pageSize? Math.max(1, Math.ceil(body.total / (body.pageSize||attendancePageSize))) : 1);
+        renderAttendance(list);
+        renderAttendancePagination();
+      }catch(err){
+        if(elList) elList.innerHTML = 'Error al cargar asistencias';
+        console.warn('fetchAttendance error', err);
+      }
+    }
+
+    // Fetch attendances by date (realtime tab)
+    async function fetchAttendanceByDate(fecha, page){
+      const dateStr = fecha || (new Date()).toISOString().slice(0,10);
+      realtimePage = (typeof page==='number' && page>0) ? page : 1;
+      const elList = document.getElementById('realtimeList');
+      const footer = document.getElementById('realtimePaginationFooter');
+      if(elList) elList.innerHTML = 'Cargando...';
+      try{
+        const url = new URL(SERVER_URL.replace(/\/$/, '') + '/api/asistencia/by-fecha');
+        url.searchParams.set('fecha', dateStr);
+        url.searchParams.set('tamanoPagina', String(realtimePageSize));
+        url.searchParams.set('pagina', String(realtimePage));
+        const res = await fetch(url.toString(), { headers: {...getAuthHeaders()} });
+        if(!res.ok){ if(elList) elList.innerHTML = 'Error al cargar asistencias'; return; }
+        const body = await res.json();
+        const list = (body && body.data) ? body.data : [];
+        // infer total pages
+        let tp = 1;
+        if(body){
+          if(typeof body.total === 'number' && body.pageSize) tp = Math.max(1, Math.ceil(body.total / (body.pageSize||realtimePageSize)));
+          else if(typeof body.totalPages === 'number') tp = body.totalPages;
+          else if(typeof body.pageCount === 'number') tp = body.pageCount;
+        }
+        realtimeTotalPages = tp;
+        renderRealTimeAttendance(list);
+        renderRealTimePagination();
+      }catch(err){
+        if(elList) elList.innerHTML = 'Error al cargar asistencias';
+        console.warn('fetchAttendanceByDate error', err);
+      }
+    }
+
+    function renderRealTimeAttendance(list){
+      const elList = document.getElementById('realtimeList');
+      if(!elList) return;
+      elList.innerHTML = '';
+      if(!list || list.length===0){ elList.innerHTML = '<div class="muted">No hay asistencias para la fecha seleccionada.</div>'; return; }
+      list.forEach(a=>{
+        const div = document.createElement('div');
+        div.className = 'card small';
+        div.style.marginBottom = '8px';
+        // prefer explicit server fields: nombre_completo_alumno and nombre_grado
+        const studentName = a.nombre_completo_alumno || a.nombre_completo || a.nombre || '';
+        const studentGrade = a.nombre_grado || a.grade || a.clas || '';
+        const txtDate = formatDateTimeISO(a.fecha_hora || a.fechaHora || a.fechaHoraIso || a.date || '');
+        const aid = a.id || a.asistenciaId || a.id_asistencia || '';
+        // hide biometric ID as requested; show name, grade and guardian only, plus delete button
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${studentName}</strong><div class='muted'>${studentGrade ? studentGrade + ' • ' : ''}${a.nombre_apoderado? 'Apoderado: '+a.nombre_apoderado : ''}${a.numero_apoderado? ' · '+a.numero_apoderado : ''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><div class="muted">${txtDate}</div><div><button class="accent-ghost" onclick="deleteAttendance('${aid}')">Eliminar</button></div></div></div>`;
+        elList.appendChild(div);
+      });
+    }
+
+    function renderRealTimePagination(){
+      const el = document.getElementById('realtimePaginationFooter');
+      if(!el) return;
+      el.innerHTML = '';
+      if(!realtimeTotalPages || realtimeTotalPages <= 1){ el.textContent = ''; return; }
+      const prev = document.createElement('button'); prev.className='accent-ghost'; prev.textContent='‹ Prev'; prev.disabled = realtimePage <= 1; prev.onclick = ()=>{ if(realtimePage>1) fetchAttendanceByDate(document.getElementById('realtimeDateInput')?.value||'', realtimePage-1); };
+      const next = document.createElement('button'); next.className='accent-ghost'; next.textContent='Next ›'; next.disabled = realtimePage >= realtimeTotalPages; next.onclick = ()=>{ if(realtimePage<realtimeTotalPages) fetchAttendanceByDate(document.getElementById('realtimeDateInput')?.value||'', realtimePage+1); };
+      const info = document.createElement('span'); info.style.margin='0 8px'; info.textContent = `Página ${realtimePage} de ${realtimeTotalPages}`;
+      el.appendChild(prev); el.appendChild(info); el.appendChild(next);
+    }
+
+    async function deleteAttendance(attId){
+      if(!attId){ alert('ID de asistencia no disponible'); return; }
+      if(!confirm('Eliminar registro de asistencia?')) return;
+      try{
+        const res = await fetch(SERVER_URL.replace(/\/$/, '') + '/api/asistencia/' + encodeURIComponent(attId), {
+          method: 'DELETE', headers: {...getAuthHeaders()}
+        });
+        if(!res.ok){
+          const err = await res.json().catch(()=>null);
+          throw new Error(err && err.message ? err.message : 'Error al eliminar asistencia');
+        }
+        showNotification('Asistencia eliminada', 'Registro eliminado correctamente', 3000);
+        try{
+          // refresh current views
+          if(currentTab === 'realtime'){
+            const fecha = document.getElementById('realtimeDateInput')?.value || (new Date()).toISOString().slice(0,10);
+            fetchAttendanceByDate(fecha, realtimePage);
+          }
+          if(attendanceAlumnoId){
+            fetchAttendance(attendanceAlumnoId, attendancePage);
+          }
+        }catch(e){ console.warn('Error refreshing after delete', e); }
+      }catch(err){ alert(err.message||'Error al eliminar asistencia'); }
+    }
+
+    function renderAttendance(list){
+      const elList = document.getElementById('attendanceList');
+      elList.innerHTML = '';
+      if(!list || list.length===0){ elList.innerHTML = '<div class="muted">No hay asistencias registradas.</div>'; return; }
+      list.forEach(a=>{
+        const div = document.createElement('div');
+        div.className = 'card small';
+        div.style.marginBottom = '8px';
+        const txt = formatDateTimeISO(a.fecha_hora || a.fechaHora || a.fechaHoraIso || '');
+        const aid = a.id || a.asistenciaId || a.id_asistencia || '';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div>${txt}</div><div><button class="accent-ghost" onclick="deleteAttendance('${aid}')">Eliminar</button></div></div>`;
+        elList.appendChild(div);
+      });
+    }
+
+    function renderAttendancePagination(){
+      const el = document.getElementById('attendancePaginationFooter');
+      if(!el) return;
+      el.innerHTML = '';
+      if(!attendanceTotalPages || attendanceTotalPages <= 1){ el.textContent = ''; return; }
+      const prev = document.createElement('button'); prev.className='accent-ghost'; prev.textContent='‹ Prev'; prev.disabled = attendancePage <= 1; prev.onclick = ()=>{ if(attendancePage>1) fetchAttendance(attendanceAlumnoId, attendancePage-1); };
+      const next = document.createElement('button'); next.className='accent-ghost'; next.textContent='Next ›'; next.disabled = attendancePage >= attendanceTotalPages; next.onclick = ()=>{ if(attendancePage<attendanceTotalPages) fetchAttendance(attendanceAlumnoId, attendancePage+1); };
+      const info = document.createElement('span'); info.style.margin='0 8px'; info.textContent = `Página ${attendancePage} de ${attendanceTotalPages}`;
+      el.appendChild(prev); el.appendChild(info); el.appendChild(next);
+    }
+
+    function openAttendanceDialog(id){
+      const s = students.find(x=>x.id===id) || {};
+      document.getElementById('attendanceDialogTitle').textContent = `Asistencias — ${s.name||''}`;
+      document.getElementById('attendanceDialogSub').textContent = `Alumno: ${s.name||''}`;
+      document.getElementById('attendanceDialog').style.display = 'flex';
+      fetchAttendance(id,1);
+    }
+
+    function closeAttendanceDialog(){
+      document.getElementById('attendanceDialog').style.display = 'none';
+      document.getElementById('attendanceList').innerHTML = '';
+      document.getElementById('attendancePaginationFooter').innerHTML = '';
+      attendanceAlumnoId = null; attendancePage = 1; attendanceTotalPages = 1;
+    }
+  </script>
+</body>
+</html>
