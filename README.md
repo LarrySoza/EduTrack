@@ -1,5 +1,9 @@
 # EduTrack
 
+Este proyecto se llama EduTrack. La API (EduTrack.WebApi) y la carpeta WEB son ejemplos muy básicos; están pensados como pruebas para demostrar los mecanismos y las capacidades del ESP32 para comunicarse con servicios en la nube. Estos ejemplos pueden ampliarse para integrar otros servicios de notificación (por ejemplo, WhatsApp o Telegram) u otros consumidores en producción.
+
+Nota: el ejemplo ya incluye una integración de notificaciones por WhatsApp mediante `WhatsappNotificationService` que hace POST a un endpoint de terceros. La integración es de ejemplo y la configuración (URL/usuario/clave) se debe manejar fuera del repositorio (appsettings.Secrets.json, user-secrets o variables de entorno).
+
 Proyecto para control de asistencias escolar (backend .NET) y componentes relacionados.
 
 Resumen
@@ -68,7 +72,7 @@ Integración con ESP32
 ESP32 - Pines y conexiones (extraído de `ESP32/EduTrack.ino`)
 - UART para sensor de huella (Serial1):
   - `RX_PIN` (ESP32) = GPIO 16  // Conectar TX del sensor a GPIO16
-  - `TX_PIN` (ESP32) = GPIO 17  // Conectar RX del sensor a GPIO17
+  - `TX_PIN` (ESP32) = GPIO 17  // Conectar RX del sensor to GPIO17
   - Baud rate: 57600
   - Alimentación del sensor: `VCC` -> 3.3V, `GND` -> GND
 
