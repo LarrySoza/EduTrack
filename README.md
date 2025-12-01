@@ -65,6 +65,31 @@ Seguridad y despliegue
 Integración con ESP32
 - El dispositivo ESP32 en `ESP32/` está preparado para llamar a los endpoints del API para notificar asistencias. Verifica URL base pública (ej. `https://mi-dominio.com/api`) y autenticación requerida.
 
+ESP32 - Pines y conexiones (extraído de `ESP32/EduTrack.ino`)
+- UART para sensor de huella (Serial1):
+  - `RX_PIN` (ESP32) = GPIO 16  // Conectar TX del sensor a GPIO16
+  - `TX_PIN` (ESP32) = GPIO 17  // Conectar RX del sensor a GPIO17
+  - Baud rate: 57600
+  - Alimentación del sensor: `VCC` -> 3.3V, `GND` -> GND
+
+- Teclado matricial 4x4:
+  - Filas (ROW) -> GPIO 12, 14, 27, 26
+  - Columnas (COL) -> GPIO 33, 32, 25, 19
+  - Usa la librería `Keypad`; asegúrate de tener resistencias pull-up/pull-down según tu montaje (normalmente entradas con pull-ups internas o resistencias externas).
+
+- LCD I2C (LiquidCrystal_I2C):
+  - Dirección I2C: `0x27`
+  - Tamaño configurado en código: 20x4 (ajustar si tu pantalla es distinta)
+  - Conexiones I2C típicas en ESP32 (si no se reconfigura Wire): `SDA` -> GPIO21, `SCL` -> GPIO22
+  - Alimentación: `VCC` -> 5V o 3.3V según módulo, `GND` -> GND
+
+- Entradas / botones: el teclado se usa para navegación y no hay botones físicos adicionales en el código.
+
+- Otros detalles relevantes:
+  - Sensor de huella usa la librería `Adafruit_Fingerprint` y llamadas a `finger.getImage()`, `image2Tz`, `createModel`, `storeModel`, `fingerSearch()`.
+  - El código realiza llamadas HTTP POST al endpoint `https://edutrack.gaspersoft.com/api/asistencia` usando `HTTPClient` y envía `grado_id` y `biometrico_id` en JSON, con un token Bearer hardcoded en el ejemplo.
+  - Wi?Fi: el sketch usa SSID/clave en variables `ssid` y `claveWifi` (reemplazar por credenciales reales o usar gestión segura).
+
 Integración con la WEB
 - La carpeta `WEB/` contiene una interfaz básica que consume la API y se conecta al Hub SignalR para recibir `NuevaAsistencia` y mostrarla en tiempo real.
 
